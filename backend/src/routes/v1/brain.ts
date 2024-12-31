@@ -1,13 +1,11 @@
 import express, { Request, Response, Router } from "express";
-import { ncrypt } from "ncrypt-js";
 import { userMiddleware } from "../../middlewares/auth";
 import { UserModel, ContentModel } from "../../db";
 import dotenv from "dotenv";
+import { decrypt, encrypt } from "./rcrypt";
 
 const router = Router();
 dotenv.config();
-
-const { encrypt, decrypt } = new ncrypt(process.env.SECRET_KEY as string);
 
 router.use(express.json());
 
