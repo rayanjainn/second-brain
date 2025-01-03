@@ -11,7 +11,7 @@ const userSchema = new Schema({
 
 enum ContentType {
   document = "document",
-  tweet = "tweet",
+  twitter = "twitter",
   youtube = "youtube",
   link = "link",
   image = "image",
