@@ -21,56 +21,44 @@ router.post("/share", userMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-router.get(
-  "/:shareLink",
-  userMiddleware,
-  async (req: Request, res: Response) => {
-    const shareLink = req.params.shareLink;
-    const currentUserId = req.userId;
-    let shareUserId;
-    try {
-      shareUserId = decrypt(shareLink);
-    } catch (err) {
-      res.status(404).json({ message: "Share link not found" });
+router.get("/:shareLink", async (req: Request, res: Response) => {
+  const shareLink = req.params.shareLink;
+  let shareUserId;
+  try {
+    shareUserId = decrypt(shareLink);
+  } catch (err) {
+    res.status(404).json({ message: "Share link not found" });
+    return;
+  }
+
+  try {
+    const shareUSer = await UserModel.findOne({
+      _id: shareUserId,
+      share: true,
+    });
+    if (shareUSer) {
+      const contents = await ContentModel.find({
+        userId: shareUserId,
+      });
+      const formatContents = {
+        username: shareUSer.username,
+        content: contents.map((content) => {
+          return {
+            id: content._id,
+            type: content.type,
+            title: content.title,
+            link: content.link,
+            tags: content.tags,
+          };
+        }),
+      };
+      res.status(200).json({ message: "Content fetched", ...formatContents });
       return;
     }
-
-    try {
-      const shareUSer = await UserModel.findOne({
-        _id: shareUserId,
-        share: true,
-      });
-      if (shareUSer) {
-        if (shareUserId === currentUserId) {
-          res.status(403).json({ message: "You cannot share with yourself" });
-          return;
-        } else {
-          const contents = await ContentModel.find({
-            userId: shareUserId,
-          });
-          const formatContents = {
-            username: shareUSer.username,
-            content: contents.map((content) => {
-              return {
-                id: content._id,
-                type: content.type,
-                title: content.title,
-                link: content.link,
-                tags: content.tags,
-              };
-            }),
-          };
-          res
-            .status(200)
-            .json({ message: "Content fetched", contents: formatContents });
-          return;
-        }
-      }
-    } catch (err) {
-      res.status(500).json({ message: "Server error" });
-    }
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-);
+});
 
 export default router;
 

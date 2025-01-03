@@ -6,6 +6,8 @@ import { ShareIcon } from "../components/ui/icons/ShareIcon";
 import { PlusIcon } from "../components/ui/icons/PlusIcon";
 import { Card } from "../components/Card";
 import { useContent } from "../hooks/useContent";
+import axios from "axios";
+import { BACKEND_URL } from "../config";
 
 const DashBoard = () => {
   const [open, setOpen] = useState(false);
@@ -26,7 +28,20 @@ const DashBoard = () => {
             text="Share Brain"
             icon={<ShareIcon />}
             size="md"
-            onClick={() => {}}
+            onClick={async () => {
+              const response = await axios.post(
+                `${BACKEND_URL}/api/v1/brain/share`,
+                {},
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                }
+              );
+              const shareLink = `http://localhost:5173/share/${response.data.shareLink}`;
+              navigator.clipboard.writeText(shareLink);
+              alert("Link copied to clipboard");
+            }}
           />
           <Button
             variant="primary"
